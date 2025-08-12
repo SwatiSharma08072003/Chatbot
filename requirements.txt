@@ -1,0 +1,4 @@
+streamlit==1.48.0
+groq==0.29.0
+load-dotenv==0.1.0
+python-dotenv==1.1.1

@@ -5,7 +5,17 @@ import os
 
 # Load environment variables
 load_dotenv()
-API_KEY = os.getenv("api_key")
+
+# Retrieve API key from environment
+api_key = os.getenv("GROQ_API_KEY")
+
+# Initialize Groq client
+client = Groq(api_key=api_key)
+
+# Validate API key
+if not api_key or not api_key.startswith("gsk_"):
+    st.error("🚫 Invalid or missing API key. Please check your .env file.")
+    st.stop()
 
 # Page configuration
 st.set_page_config(page_title="AI Career Chat", page_icon="🤖", layout="centered")
@@ -34,33 +44,29 @@ user_input = st.text_input(
     placeholder="e.g., What skills are needed for AI jobs?"
 )
 
-# Initialize Groq client
-if not API_KEY:
-    st.error("🚫 API Key not found. Please set it in your .env file as 'api_key'.")
-    st.stop()
-
-client = Groq(api_key=API_KEY)
-
 # Submit button
 if st.button("🚀 Get Answer"):
-    if user_input.strip():
+    if not user_input.strip():
+        st.warning("⚠️ Please enter a question to get started.")
+    else:
         with st.spinner("Thinking..."):
             try:
                 chat_completion = client.chat.completions.create(
+                    model="llama-3.3-70b-versatile",
                     messages=[
                         {"role": "system", "content": "You are a helpful AI career advisor."},
                         {"role": "user", "content": user_input}
-                    ],
-                    model="llama-3.3-70b-versatile",
+                    ]
                 )
                 response = chat_completion.choices[0].message.content.strip()
                 st.success("✅ Here's what I found:")
-                st.markdown(f"<div style='background-color:#f0f2f6; padding:1em; border-radius:8px;'>{response}</div>", unsafe_allow_html=True)
+                st.markdown(
+                    f"<div style='background-color:#f0f2f6; padding:1em; border-radius:8px;'>{response}</div>",
+                    unsafe_allow_html=True
+                )
             except Exception as e:
                 st.error("⚠️ Something went wrong while fetching the response.")
-                st.exception(e)
-    else:
-        st.warning("⚠️ Please enter a question before submitting.")
+                st.caption(f"Error details: `{e}`")
 
 # Footer
 st.markdown("---")
